@@ -25,14 +25,6 @@ type config struct {
 }
 
 func main() {
-	// initialize log file
-	lf, err := generateLogFile()
-	if err != nil {
-		fmt.Println("Could not generate log file:", err)
-		os.Exit(1)
-	}
-	defer lf.Close()
-
 	// read in parameters
 	configFile := flag.String("config", "config.yaml", "A YAML file with list of configurations for SQL Extraction.")
 	flag.Parse()
@@ -90,22 +82,6 @@ func startTimer(c *config) func() {
 		d := time.Now().Sub(t)
 		log.Println("Completed extraction process in", d)
 	}
-}
-
-// generateLogFile creates a log file with a timestamp to track process
-func generateLogFile() (*os.File, error) {
-	today := time.Now()
-	y, m, d, hr, min_, ss := today.Year(), today.Month(), today.Day(), today.Hour(), today.Minute(), today.Second()
-	logName := fmt.Sprintf("./extract_%d_%02d%02d_%d%d%d", y, m, d, hr, min_, ss)
-	lf, err := os.OpenFile(logName, os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		return nil, err
-	}
-
-	log.SetFlags(log.Lshortfile | log.LstdFlags)
-	log.SetOutput(lf)
-
-	return lf, nil
 }
 
 // sqlConnect uses the provided configuration to connect to SQL and return the *sql.DB

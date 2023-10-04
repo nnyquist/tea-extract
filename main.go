@@ -61,7 +61,6 @@ func main() {
 		outFile := params.OutFiles[i]
 		go func(query, outFile string) {
 			defer wg.Done()
-			defer log.Printf("Extraction completed for %s\n", outFile)
 			err := exportData(db, query, outFile, delim)
 			if err != nil {
 				log.Fatal(err)
@@ -132,6 +131,7 @@ func exportData(db *sql.DB, query, outFile string, delimiter rune) error {
 		rowPtr[i] = &row[i]
 	}
 
+	var rowCount uint
 	for rows.Next() {
 		if err := rows.Scan(rowPtr...); err != nil {
 			return fmt.Errorf("Unable to properly parse the query result: %v\n", err)
@@ -143,12 +143,15 @@ func exportData(db *sql.DB, query, outFile string, delimiter rune) error {
 		if err := w.Write(values); err != nil {
 			return fmt.Errorf("Record could not be written to export file: %v\n", err)
 		}
+		rowCount++
 
 	}
 
 	if err := w.Error(); err != nil {
 		return fmt.Errorf("Following error occurred while finalizing export file: %v\n", err)
 	}
+
+	log.Printf("Extraction completed for %s (%d row(s) affected)\n", outFile, rowCount)
 
 	return nil
 }
